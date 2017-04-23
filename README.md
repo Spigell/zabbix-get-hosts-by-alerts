@@ -9,7 +9,7 @@ Tested on zabbix 3.2.
 Python - 2.7
 # INSTALL
 
-    $ sparrow plg install zabbix-get-hosts-by-alerts
+    $ sparrow plg install zabbix-hosts-by-alerts
 
 ## Dependencies
 
@@ -19,7 +19,7 @@ Python - 2.7
 
 ## Manually
  
-     $ sparrow plg run zabbix-get-hosts-by-alerts --param user=foo --param password=bar --param host=127.0.0.1 --param pattern="Server unreachable"
+     $ sparrow plg run zabbix-hosts-by-alerts --param user=foo --param password=bar --param host=127.0.0.1 --param pattern="Server unreachable"
      
      test.tomatonetwork.ru
      test2.tomatonetworku.ru
