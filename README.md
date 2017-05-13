@@ -40,3 +40,11 @@ Python - 2.7
 ## pattern
  
  Part of alert's description.
+
+## output 
+
+ Default is `stdout`. If any other specified output will be in file.
+
+## severity
+
+ Minimal severity of allert. Default is `3`
