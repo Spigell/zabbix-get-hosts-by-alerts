@@ -20,7 +20,6 @@ user = config()['user']
 password = config()['password']
 pattern = config()['pattern']
 min_severity = config()['severity']
-acknowledged = config()['with_acknowledged']
 output = config()['output']
 
 zapi = ZabbixAPI(zhost)
