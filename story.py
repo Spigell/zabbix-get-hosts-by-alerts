@@ -1,14 +1,26 @@
 import ast
+import sys
+import logging
 import re
 from outthentic import *
 from pyzabbix import ZabbixAPI
 
+debug = config()['debug']
+
+if debug == '1':
+
+    stream = logging.StreamHandler(sys.stdout)
+    stream.setLevel(logging.DEBUG)
+    log = logging.getLogger('pyzabbix')
+    log.addHandler(stream)
+    log.setLevel(logging.DEBUG)
 
 zhost = config()['host']
 user = config()['user']
 password = config()['password']
 pattern = config()['pattern']
 min_severity = config()['severity']
+acknowledged = config()['with_acknowledged']
 output = config()['output']
 
 zapi = ZabbixAPI(zhost)
@@ -16,6 +28,7 @@ zapi.login(user, password)
 triggers = zapi.trigger.get(
         min_severity = min_severity,
         only_true='True',
+        withLastEventUnacknowledged = 'True',
     )
 
 trigger_ids=''

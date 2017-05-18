@@ -1,5 +1,5 @@
 {
-    "version": "1.1.0",
+    "version": "1.1.1",
     "name": "zabbix-hosts-by-alerts",
     "description" : "get hosts with specified alert description",
 	"category" : "monitoring",
