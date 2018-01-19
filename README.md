@@ -1,10 +1,10 @@
 # SYNOPSIS
 
-Sparrow plugin. 
+Outthentic plugin. 
 
 Get zabbix's hostnames by description of alerts.
 
-Tested on zabbix 3.2.
+Tested on zabbix 3.2+.
 
 Python - 2.7
 # INSTALL
@@ -47,4 +47,14 @@ Python - 2.7
 
 ## severity
 
- Minimal severity of allert. Default is `3`
+ Minimal severity of alert. Default is `3`
+
+## duration
+
+ Minimal duration for alert being in BAD state. Default is `5 minutes`
+
+# See also
+
+[sparrowdo](https://github.com/melezhik/sparrowdo)
+
+[sparrow](https://github.com/melezhik/sparrow)
