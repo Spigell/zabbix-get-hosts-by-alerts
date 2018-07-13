@@ -4,67 +4,127 @@ import logging
 import re
 import time
 
+import oyaml as yaml
 from outthentic import *
 from pyzabbix import ZabbixAPI
 
-
-debug = config()['debug']
-
-if debug == '1':
-
-    stream = logging.StreamHandler(sys.stdout)
-    stream.setLevel(logging.DEBUG)
-    log = logging.getLogger('pyzabbix')
-    log.addHandler(stream)
-    log.setLevel(logging.DEBUG)
-
-zhost = config()['host']
-user = config()['user']
-password = config()['password']
-pattern = config()['pattern']
-min_severity = config()['severity']
 output = config()['output']
-trigger_until = config()['duration']
 
-trigger_until = int(trigger_until) * 60
-current_time = time.time()
+def main():
 
-trigger_until = current_time - trigger_until
+    debug = config()['debug']
 
-zapi = ZabbixAPI(zhost)
-zapi.login(user, password)
-triggers = zapi.trigger.get(
+    if debug == '1':
+        stream = logging.StreamHandler(sys.stdout)
+        stream.setLevel(logging.DEBUG)
+        log = logging.getLogger('pyzabbix')
+        log.addHandler(stream)
+        log.setLevel(logging.DEBUG)
+
+    zhost = config()['host']
+    user = config()['user']
+    password = config()['password']
+    pattern = config()['pattern']
+    min_severity = config()['severity']
+    trigger_until = config()['duration']
+    extended = config()['extended']
+    with_values = config()['with_values']
+
+    trigger_until_sec = int(trigger_until) * 60
+    current_time = time.time()
+    trigger_until_sec = current_time - trigger_until_sec
+
+    zapi = ZabbixAPI(zhost)
+    zapi.login(user, password)
+
+    triggers = zapi.trigger.get(
         min_severity = min_severity,
-        only_true='True',
-        withLastEventUnacknowledged = 'True',
-        lastChangeTill = trigger_until
+        only_true = 'true',
+        withLastEventUnacknowledged = 'true',
+        lastChangeTill = trigger_until_sec
     )
 
-trigger_ids=''
-for trigger in triggers:
-    if trigger['value'] == '1':
-        triggersids = re.search(pattern, trigger['description'])
-        if triggersids:
-            trigger_id = (trigger['triggerid'])
-            trigger_ids +=  trigger_id + ","
+    hostsinfo =''
+    hostnames = ''
+    trigger_ids=''
+    for trigger in triggers:
+        if trigger['value'] == '1':
+            match = re.search(pattern, trigger['description'])
+            if match:
+                trigger_id = trigger['triggerid']
 
-try:
-    trigger_ids=ast.literal_eval(trigger_ids)
-except SyntaxError:
-    print "Found nothing"
+                if extended == 'true':
 
-zapi = ZabbixAPI(zhost)
-zapi.login(user, password)
-hosts = zapi.host.get(
-    triggerids=(trigger_ids)
-    )
+                    information = trigger['description']
 
-if output == 'stdout':
-    for host in hosts:
-        print "%s" % (host['host'])
-else:
-    f = open(output, 'w')
-    for host in hosts:
-        f.write( "%s\n" % (host['host']))
-    f.close()
+                    host = zapi.host.get(
+                        triggerids=(trigger_id)
+                    )
+                    hostname = host[0]['host'].encode('utf-8')
+
+                    output_yaml = dict(
+                        host = hostname
+                        )
+
+                    items = zapi.item.get(
+                        triggerids=(trigger_id)
+                    )
+                    for index, item in enumerate(items):
+                        value = item['lastvalue'] + item['units']
+
+                        if len(items) > 1:
+                            replace_pattern = '{' + 'ITEM.LASTVALUE' + str(index + 1) + '}'
+                        else:
+                            replace_pattern = '{ITEM.LASTVALUE}'
+
+
+                        if with_values == 'true':
+                            value_raw = item['lastvalue']
+                            #.encode('utf-8')
+                            key = 'value' + str(index)
+                            output_yaml[key] = value_raw
+
+                        information = information.replace(replace_pattern, value)
+                        #.encode('utf-8')
+                        output_yaml.update(alert = information)
+
+                        info = yaml.safe_dump(output_yaml, encoding=('utf-8'), default_flow_style=False, allow_unicode=True)
+
+
+                    hostsinfo += info + "\n"
+
+                else: 
+                    trigger_ids +=  trigger_id + ","
+
+    if trigger_ids:
+
+        trigger_ids=ast.literal_eval(trigger_ids)
+        hosts = zapi.host.get(
+            triggerids=(trigger_ids)
+        )
+
+        for host in hosts:
+            hostname = host['host']
+            hostnames += hostname + '\n'
+        return hostnames
+
+    elif hostsinfo:
+        return hostsinfo
+
+    else:
+        return "Found nothing"
+
+
+
+
+if __name__ == "__main__":
+    hosts = main()
+
+    if output == 'stdout':
+        print(hosts)
+    else:
+        f = open(output, 'w')
+        f.write(hosts)
+        f.close()
+
 

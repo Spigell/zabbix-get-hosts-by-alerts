@@ -1,0 +1,6 @@
+output: stdout
+severity: 3
+debug: no
+duration: 5
+extended: false
+with_values: false
