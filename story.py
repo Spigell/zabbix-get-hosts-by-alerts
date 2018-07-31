@@ -64,7 +64,7 @@ def main():
 
                     output_yaml = dict(
                         host = hostname
-                        )
+                    )
 
                     items = zapi.item.get(
                         triggerids=(trigger_id)
@@ -73,9 +73,9 @@ def main():
                         value = item['lastvalue'] + item['units']
 
                         if len(items) > 1:
-                            replace_pattern = '{' + 'ITEM.LASTVALUE' + str(index + 1) + '}'
+                            replace_pattern = re.compile('{' + 'ITEM.LASTVALUE' + str(index + 1) + '}')
                         else:
-                            replace_pattern = '{ITEM.LASTVALUE}'
+                            replace_pattern = re.compile("{ITEM.LASTVALUE}|{ITEM.LASTVALUE1}|{ITEM.VALUE}")
 
 
                         if with_values == 'true':
@@ -84,7 +84,7 @@ def main():
                             key = 'value' + str(index)
                             output_yaml[key] = value_raw
 
-                        information = information.replace(replace_pattern, value)
+                        information = re.sub(replace_pattern, value, information)
                         #.encode('utf-8')
                         output_yaml.update(alert = information)
 
@@ -118,13 +118,13 @@ def main():
 
 
 if __name__ == "__main__":
-    hosts = main()
+    result = main()
 
     if output == 'stdout':
-        print(hosts)
+        print(result)
     else:
         f = open(output, 'w')
-        f.write(hosts)
+        f.write(result)
         f.close()
 
 
