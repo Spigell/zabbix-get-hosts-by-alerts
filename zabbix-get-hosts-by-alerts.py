@@ -12,7 +12,7 @@ from pyzabbix import ZabbixAPI
 
 
 options = argparse.ArgumentParser(description='Get hostnames from Zabbix with active triggers by description via Zabbix api')
-options.add_argument("host", type=str, help="host of zabbix server")
+options.add_argument('--host', type=str, help="host of zabbix server", nargs="?")
 options.add_argument("pattern", type=str, help="Your pattern")
 options.add_argument('--user', type=str, help='Name of your user', default='zabbix', nargs="?")
 options.add_argument('--password', type=str, help='Password for user', default='zabbix', nargs="?")
@@ -25,7 +25,6 @@ options.add_argument('--output', type=str, metavar='path/to/file', help='/path/t
 config = vars(options.parse_args())
 
 output = config['output']
-print(config)
 
 def main():
 
@@ -144,5 +143,4 @@ if __name__ == "__main__":
         f = open(output, 'w')
         f.write(result)
         f.close()
-
 
