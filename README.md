@@ -1,12 +1,10 @@
 # SYNOPSIS
 
-Outthentic plugin. 
-
 Get zabbix's hostnames by description of trigger.
 
 Tested on zabbix 3.2+.
 
-Python - 2.7
+Python - 3
 
 # INSTALL
 
@@ -22,8 +20,19 @@ Python - 2.7
 
 ## Manually
  
-    $ sparrow plg run zabbix-hosts-by-alerts --param user=foo --param password=bar --param host=127.0.0.1
-    --param pattern="Server unreachable"
+    $ ./zabbix-hosts-by-alerts --user foo --password bar --host 127.0.0.1
+      "Server unreachable"
+
+
+## Sparrow usage
+This script is being wrapped by sparrow as outthentic plugin. For installation you can
+
+    $ sparrow plg install zabbix-hosts-by-alerts
+
+And if you want to run this script
+
+    $ sparrow plg run zabbix-hosts-by-alerts -- --user foo --password bar --host 127.0.0.1
+    "Server unreachable"
      
     test.example.ru
     test2.example.ru
@@ -32,11 +41,11 @@ Python - 2.7
 
 ## user
  
- A user to login. No default value. Obligatory.
+ A user to login. Default is `zabbix`. Obligatory.
  
 ## password
  
- A password. Obligatory.
+ A password. Obligatory. Default is `zabbix`.
  
 ## host
  
@@ -44,7 +53,7 @@ Python - 2.7
 
 ## pattern
  
- Part of alert's description.
+ Part of alert's description. Obligatory.
 
 ## output 
 
@@ -58,11 +67,11 @@ Python - 2.7
 
  Minimal duration for alert being in BAD state. Default is `5 minutes`
 
-## extended
+## extended(flag)
 
  if true then adds to output description of trigger in YAML. For example:
-
-    $ sparrow plg run zabbix-hosts-by-alerts --param user=foo --param password=bar --param host=127.0.0.1:8080 --param pattern="unreachable" --param extended=true
+    $ ./zabbix-hosts-by-alerts --user foo --password bar --host 127.0.0.1 
+      "Server unreachable" --extended
 
     host: server2.example.ru
     alert: Server is unreachable 
@@ -70,12 +79,9 @@ Python - 2.7
     host: server1.example.ru
     alert: Server is unreachable 
 
-### with_values
+### with_values(flag)
  if true then adds value lastvalue to output.
 
-    $ sparrow plg run zabbix-hosts-by-alerts --param user=foo --param password=bar --param host=127.0.0.1:8080 --param pattern="memory" --param extended=true --param with_values=true
-
- 
     host: server2.example.ru
     alert: 'Available memory: 3.1334% 1589039104B'
     value1: '1589039104'
