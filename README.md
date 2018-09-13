@@ -70,6 +70,7 @@ And if you want to run this script
 ## extended(flag)
 
  if true then adds to output description of trigger in YAML. For example:
+ 
     $ ./zabbix-hosts-by-alerts --user foo --password bar --host 127.0.0.1 
       "Server unreachable" --extended
 
