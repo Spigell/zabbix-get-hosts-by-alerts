@@ -1,34 +1,51 @@
+#!/usr/bin/env python
+
 import ast
 import sys
 import logging
 import re
 import time
+import argparse
 
 import oyaml as yaml
-from outthentic import *
 from pyzabbix import ZabbixAPI
 
-output = config()['output']
+
+options = argparse.ArgumentParser(description='Get hostnames from Zabbix with active triggers by description via Zabbix api')
+options.add_argument("host", type=str, help="host of zabbix server")
+options.add_argument("pattern", type=str, help="Your pattern")
+options.add_argument('--user', type=str, help='Name of your user', default='zabbix', nargs="?")
+options.add_argument('--password', type=str, help='Password for user', default='zabbix', nargs="?")
+options.add_argument('--severity', type=int, help='Minimal severity of triggers', default=3, nargs="?")
+options.add_argument('--duration', type=int, help='Minimal duration', default=5, nargs="?")
+options.add_argument('--extended', help='Show trigger description', action='store_true')
+options.add_argument('--with_values', help='Show values also', action='store_true')
+options.add_argument('--debug', help='Debug for pyzabbix module', action='store_true')
+options.add_argument('--output', type=str, metavar='path/to/file', help='/path/to/file OR stdout', default='stdout')
+config = vars(options.parse_args())
+
+output = config['output']
+print(config)
 
 def main():
 
-    debug = config()['debug']
+    debug = config['debug']
 
-    if debug == '1':
+    if debug:
         stream = logging.StreamHandler(sys.stdout)
         stream.setLevel(logging.DEBUG)
         log = logging.getLogger('pyzabbix')
         log.addHandler(stream)
         log.setLevel(logging.DEBUG)
 
-    zhost = config()['host']
-    user = config()['user']
-    password = config()['password']
-    pattern = config()['pattern']
-    min_severity = config()['severity']
-    trigger_until = config()['duration']
-    extended = config()['extended']
-    with_values = config()['with_values']
+    zhost = config['host']
+    user = config['user']
+    password = config['password']
+    pattern = config['pattern']
+    min_severity = config['severity']
+    trigger_until = config['duration']
+    extended = config['extended']
+    with_values = config['with_values']
 
     trigger_until_sec = int(trigger_until) * 60
     current_time = time.time()
@@ -53,14 +70,15 @@ def main():
             if match:
                 trigger_id = trigger['triggerid']
 
-                if extended == 'true':
+                if extended:
 
                     information = trigger['description']
 
                     host = zapi.host.get(
                         triggerids=(trigger_id)
                     )
-                    hostname = host[0]['host'].encode('utf-8')
+                    hostname = host[0]['host']
+                    #.encode('utf-8')
 
                     output_yaml = dict(
                         host = hostname
@@ -78,7 +96,7 @@ def main():
                             replace_pattern = re.compile("{ITEM.LASTVALUE}|{ITEM.LASTVALUE1}|{ITEM.VALUE}")
 
 
-                        if with_values == 'true':
+                        if with_values:
                             value_raw = item['lastvalue']
                             #.encode('utf-8')
                             key = 'value' + str(index)
@@ -88,10 +106,10 @@ def main():
                         #.encode('utf-8')
                         output_yaml.update(alert = information)
 
-                        info = yaml.safe_dump(output_yaml, encoding=('utf-8'), default_flow_style=False, allow_unicode=True)
+                        info = yaml.safe_dump(output_yaml, encoding=('utf-8'), default_flow_style=False, allow_unicode=True).decode()
 
 
-                    hostsinfo += info + "\n"
+                    hostsinfo += info + '\n'
 
                 else: 
                     trigger_ids +=  trigger_id + ","
